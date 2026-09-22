@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Internship Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#eef1f6; --panel:#ffffff; --ink:#1d2433; --muted:#5d6779; --line:#d4dae4; --soft:#e3e8f0;
+  --s-toapply:#6b7a90; --s-progress:#c07f0e; --s-applied:#2f6fd6; --s-interview:#7a4fd1; --s-offer:#1f9a61; --s-closed:#a0555a;
+  --danger:#c2372f; --warn:#b86e00; --focus:#2f6fd6;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141922; --panel:#1d2430; --ink:#e7ebf2; --muted:#9aa4b5; --line:#2e3746; --soft:#252d3a;
+    --s-toapply:#8d9bb0; --s-progress:#e2a43a; --s-applied:#5b93f0; --s-interview:#a07ff0; --s-offer:#3cc084; --s-closed:#d07c81;
+    --danger:#ef6b62; --warn:#e8a33c; --focus:#5b93f0;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141922; --panel:#1d2430; --ink:#e7ebf2; --muted:#9aa4b5; --line:#2e3746; --soft:#252d3a;
+  --s-toapply:#8d9bb0; --s-progress:#e2a43a; --s-applied:#5b93f0; --s-interview:#a07ff0; --s-offer:#3cc084; --s-closed:#d07c81;
+  --danger:#ef6b62; --warn:#e8a33c; --focus:#5b93f0;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1400px;margin:0 auto;padding:20px 16px 48px}
+
+/* Header */
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:0;line-height:1.1}
+.sync{font-size:13px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--s-offer)}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+.btn.danger{color:var(--danger)}
+
+/* Pipeline strip: the signature element */
+.pipe{display:flex;height:46px;border-radius:10px;overflow:hidden;background:var(--soft);margin-bottom:14px}
+.pipe button{border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:#fff;font-weight:600;font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;transition:flex-grow .35s ease}
+.pipe button .n{font-size:18px;font-weight:800}
+.pipe button[aria-pressed="true"]{box-shadow:inset 0 -4px 0 rgba(0,0,0,.35)}
+.pipe .empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
+
+/* Toolbar */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.bar input[type=search]{flex:1 1 220px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.bar select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* Board */
+.board{display:grid;grid-template-columns:repeat(6,minmax(220px,1fr));gap:10px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--soft);border-radius:10px;padding:8px;min-height:160px;display:flex;flex-direction:column;gap:8px}
+.col.over{outline:2px dashed var(--focus);outline-offset:-2px}
+.colhead{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 2px;font-weight:700;font-size:14px}
+.colhead .c{color:var(--muted);font-weight:500}
+.colhead .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0}
+.card{background:var(--panel);border-radius:8px;border-left:4px solid var(--st);padding:10px 10px 8px;cursor:pointer;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.card:hover{border-right-color:var(--muted);border-top-color:var(--muted);border-bottom-color:var(--muted)}
+.card.dragging{opacity:.45}
+.card .co{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.card .ro{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:12px}
+.chip{padding:2px 7px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.chip.due-soon{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);font-weight:600}
+.chip.overdue{background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger);font-weight:600}
+.next{margin-top:6px;font-size:13px;overflow-wrap:anywhere}
+.next b{font-weight:600}
+.cardfoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:6px}
+.cardfoot select{font-size:12px;padding:3px 4px;border:1px solid var(--line);border-radius:6px;background:var(--panel);max-width:120px}
+.links{display:flex;gap:6px;flex-wrap:wrap}
+.links a{font-size:12px;color:var(--s-applied);text-decoration:none;font-weight:500}
+.links a:hover{text-decoration:underline}
+.colempty{color:var(--muted);font-size:13px;text-align:center;padding:14px 4px}
+
+/* Table */
+.tablewrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:860px;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap}
+th[aria-sort]::after{content:" ▾"}
+th[aria-sort="ascending"]::after{content:" ▴"}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--soft)}
+.stpill{display:inline-block;padding:2px 8px;border-radius:999px;color:#fff;font-size:12px;font-weight:600;background:var(--st);white-space:nowrap}
+
+.emptyall{text-align:center;padding:48px 16px;color:var(--muted)}
+.emptyall h2{color:var(--ink);font-size:20px;margin:0 0 6px}
+
+/* Dialog */
+dialog{border:0;border-radius:14px;padding:0;background:var(--panel);color:var(--ink);width:min(640px,calc(100% - 24px));max-height:calc(100% - 24px)}
+dialog::backdrop{background:rgba(10,14,22,.5)}
+.dlg{padding:20px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{margin:0;font-size:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.grid2{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+label input,label select,label textarea{font-weight:400;color:var(--ink);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+textarea{min-height:90px;resize:vertical}
+.req{color:var(--danger)}
+.linkrows{display:flex;flex-direction:column;gap:6px}
+.linkrow{display:grid;grid-template-columns:140px 1fr auto;gap:6px}
+@media (max-width:560px){.linkrow{grid-template-columns:1fr auto}.linkrow input:first-child{grid-column:1/-1}}
+.linkrow input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.x{border:1px solid var(--line);background:var(--panel);border-radius:8px;width:34px;cursor:pointer}
+.dlgfoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:4px}
+.dlgfoot div{display:flex;gap:8px}
+.err{color:var(--danger);font-size:13px;min-height:1em}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Internship Tracker</h1>
+      <div class="sync" id="sync"><span class="dot"></span><span>Loading…</span></div>
+    </div>
+    <div class="hbtns">
+      <button class="btn" id="exportBtn" title="Download a backup of all entries">Export</button>
+      <button class="btn" id="importBtn" title="Load entries from a backup file">Import</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+      <button class="btn primary" id="addBtn">Add internship</button>
+    </div>
+  </header>
+
+  <div class="pipe" id="pipe" role="group" aria-label="Pipeline by status. Click a stage to filter."></div>
+
+  <div class="bar">
+    <label class="sr" for="q">Search</label>
+    <input type="search" id="q" placeholder="Search company, role, notes…">
+    <label class="sr" for="season">Season</label>
+    <select id="season"><option value="">All seasons</option></select>
+    <label class="sr" for="sortBy">Sort cards</label>
+    <select id="sortBy">
+      <option value="deadline">Sort: deadline</option>
+      <option value="next">Sort: next step date</option>
+      <option value="company">Sort: company A–Z</option>
+      <option value="updated">Sort: recently edited</option>
+    </select>
+    <div class="seg" role="group" aria-label="View">
+      <button id="vBoard" aria-pressed="true">Board</button>
+      <button id="vTable" aria-pressed="false">Table</button>
+    </div>
+  </div>
+
+  <main id="main"></main>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <form class="dlg" id="form" novalidate>
+    <h2 id="dlgTitle">Add internship</h2>
+    <div class="grid2">
+      <label>Company <span class="sr">required</span><input name="company" required autocomplete="off"></label>
+      <label>Role<input name="role" placeholder="e.g. Mechanical Engineering Intern" autocomplete="off"></label>
+      <label>Status<select name="status"></select></label>
+      <label>Season<input name="season" placeholder="e.g. Summer 2027" list="seasonList" autocomplete="off"></label>
+      <label>Location<input name="location" placeholder="City, or Remote" autocomplete="off"></label>
+      <label>Application deadline<input name="deadline" type="date"></label>
+      <label>Date applied<input name="applied" type="date"></label>
+      <label>Contact / referral<input name="contact" placeholder="Name, email" autocomplete="off"></label>
+      <label>Next step<input name="nextStep" placeholder="e.g. Follow up with recruiter" autocomplete="off"></label>
+      <label>Next step date<input name="nextDate" type="date"></label>
+    </div>
+    <datalist id="seasonList"></datalist>
+    <div>
+      <label style="margin-bottom:6px">Links</label>
+      <div class="linkrows" id="linkRows"></div>
+      <button type="button" class="btn" id="addLink" style="margin-top:6px">Add link</button>
+    </div>
+    <label>Notes<textarea name="notes" placeholder="Interview prep, who you talked to, questions to ask…"></textarea></label>
+    <div class="err" id="formErr" role="alert"></div>
+    <div class="dlgfoot">
+      <button type="button" class="btn danger" id="delBtn">Delete</button>
+      <div>
+        <button type="button" class="btn" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn primary" id="saveBtn">Save</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const STATUSES=[
+  {id:"toapply",label:"To Apply",v:"--s-toapply"},
+  {id:"progress",label:"In Progress",v:"--s-progress"},
+  {id:"applied",label:"Applied",v:"--s-applied"},
+  {id:"interview",label:"Interview",v:"--s-interview"},
+  {id:"offer",label:"Offer",v:"--s-offer"},
+  {id:"closed",label:"Closed",v:"--s-closed"}
+];
+const SMAP=Object.fromEntries(STATUSES.map(s=>[s.id,s]));
+const LS_KEY="internship-tracker-v1";
+const $=s=>document.querySelector(s);
+
+let items=[];            // [{id, ...fields}]
+let db=null;             // cloud store when available
+let view="board", statusFilter="", tableSort={key:"deadline",dir:1};
+let editingId=null;
+
+/* ---------- storage layer ---------- */
+function lsLoad(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):[]}catch(e){return[]}}
+function lsSave(){try{localStorage.setItem(LS_KEY,JSON.stringify(items))}catch(e){}}
+function setSync(on,text){const el=$("#sync");el.querySelector(".dot").className="dot"+(on?" on":"");el.querySelector("span:last-child").textContent=text}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+
+async function saveItem(it){
+  it.updatedAt=Date.now();
+  if(db){
+    const {id,...body}=it;
+    try{await db.collection("internships").doc(id).set(body)}
+    catch(e){toast(e&&e.code==="quota_exceeded"?"Storage is full. Delete old entries to add more.":"Couldn't save. Try again.");throw e}
+  }else{
+    const i=items.findIndex(x=>x.id===it.id);
+    if(i>=0)items[i]=it;else items.push(it);
+    lsSave();render();
+  }
+}
+async function deleteItem(id){
+  if(db){try{await db.collection("internships").doc(id).delete()}catch(e){toast("Couldn't delete. Try again.");throw e}}
+  else{items=items.filter(x=>x.id!==id);lsSave();render()}
+}
+
+async function initStore(){
+  items=lsLoad();
+  setSync(false,"Saved on this device");
+  render();
+  if(!window.claude||typeof window.claude.use!=="function")return;
+  try{
+    const d=await window.claude.use("db");
+    if(!d)return;
+    db=d;
+    setSync(true,"Synced to your account");
+    db.collection("internships").onSnapshot(snap=>{
+      items=snap.docs.map(doc=>({id:doc.id,...doc.data()}));
+      render();
+    },err=>{
+      if(err&&(err.code==="revoked"||err.code==="not_granted"||err.code==="capability_disabled")){
+        db=null;setSync(false,"Sync unavailable. Saved on this device");items=lsLoad();render();
+      }
+    });
+  }catch(e){}
+}
+
+/* ---------- helpers ---------- */
+function daysUntil(d){if(!d)return null;const t=new Date(d+"T00:00:00");const n=new Date();n.setHours(0,0,0,0);return Math.round((t-n)/864e5)}
+function fmtDate(d){if(!d)return"";const t=new Date(d+"T00:00:00");return t.toLocaleDateString(undefined,{month:"short",day:"numeric"})}
+function normUrl(u){u=(u||"").trim();if(!u)return"";if(!/^[a-z][a-z0-9+.-]*:/i.test(u))u="https://"+u;try{const x=new URL(u);return(x.protocol==="http:"||x.protocol==="https:")?x.href:""}catch(e){return""}}
+function el(tag,attrs,...kids){const e=document.createElement(tag);if(attrs)for(const[k,v]of Object.entries(attrs)){if(k==="class")e.className=v;else if(k==="style")e.style.cssText=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!=null&&v!==false)e.setAttribute(k,v===true?"":v)}for(const k of kids){if(k==null||k===false)continue;e.append(k.nodeType?k:document.createTextNode(k))}return e}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2600)}
+function stColor(s){return`var(${(SMAP[s]||SMAP.toapply).v})`}
+
+function filtered(){
+  const q=$("#q").value.trim().toLowerCase(), season=$("#season").value;
+  return items.filter(it=>{
+    if(season&&it.season!==season)return false;
+    if(q){const hay=[it.company,it.role,it.location,it.notes,it.contact,it.nextStep,it.season].join(" ").toLowerCase();if(!hay.includes(q))return false}
+    return true;
+  });
+}
+function cmp(key){
+  return(a,b)=>{
+    if(key==="company")return(a.company||"").localeCompare(b.company||"");
+    if(key==="updated")return(b.updatedAt||0)-(a.updatedAt||0);
+    const f=key==="next"?"nextDate":key;
+    const av=a[f]||"",bv=b[f]||"";
+    if(!av&&!bv)return(a.company||"").localeCompare(b.company||"");
+    if(!av)return 1;if(!bv)return -1;
+    return av<bv?-1:av>bv?1:0;
+  };
+}
+function deadlineChip(it){
+  if(!it.deadline||it.status==="offer"||it.status==="closed"||it.status==="applied"||it.status==="interview")return it.deadline?el("span",{class:"chip"},"Due "+fmtDate(it.deadline)):null;
+  const d=daysUntil(it.deadline);
+  if(d<0)return el("span",{class:"chip overdue"},"Overdue "+fmtDate(it.deadline));
+  if(d<=3)return el("span",{class:"chip due-soon"},d===0?"Due today":`Due in ${d}d`);
+  return el("span",{class:"chip"},"Due "+fmtDate(it.deadline));
+}
+
+/* ---------- render ---------- */
+function render(){
+  renderSeasons();renderPipe();
+  const main=$("#main");main.replaceChildren();
+  if(!items.length){
+    main.append(el("div",{class:"emptyall"},el("h2",null,"No internships yet"),el("p",null,"Add the first company you're targeting. Deadlines and next steps show up on each card."),el("button",{class:"btn primary",onclick:()=>openDlg()},"Add internship")));
+    return;
+  }
+  const list=filtered().filter(it=>!statusFilter||it.status===statusFilter);
+  view==="board"?renderBoard(main,list):renderTable(main,list);
+}
+function renderSeasons(){
+  const seasons=[...new Set(items.map(i=>i.season).filter(Boolean))].sort();
+  const sel=$("#season"),cur=sel.value;
+  sel.replaceChildren(el("option",{value:""},"All seasons"),...seasons.map(s=>el("option",{value:s},s)));
+  sel.value=seasons.includes(cur)?cur:"";
+  $("#seasonList").replaceChildren(...seasons.map(s=>el("option",{value:s})));
+}
+function renderPipe(){
+  const pipe=$("#pipe");pipe.replaceChildren();
+  const list=filtered();
+  if(!list.length){pipe.append(el("div",{class:"empty"},"Your pipeline appears here"));return}
+  for(const s of STATUSES){
+    const n=list.filter(i=>i.status===s.id).length;
+    if(!n)continue;
+    pipe.append(el("button",{style:`flex-grow:${n};flex-basis:0;background:var(${s.v})`,"aria-pressed":String(statusFilter===s.id),title:`${s.label}: ${n}. Click to ${statusFilter===s.id?"show all":"filter"}`,onclick:()=>{statusFilter=statusFilter===s.id?"":s.id;render()}},el("span",{class:"n"},String(n)),el("span",null,s.label)));
+  }
+}
+function linkEls(it){
+  return(it.links||[]).filter(l=>l.url).map(l=>el("a",{href:l.url,target:"_blank",rel:"noopener noreferrer",onclick:e=>e.stopPropagation()},(l.label||"Link")+" ↗"));
+}
+function renderBoard(main,list){
+  const board=el("div",{class:"board"});
+  const key=$("#sortBy").value;
+  const cols=statusFilter?STATUSES.filter(s=>s.id===statusFilter):STATUSES;
+  if(statusFilter)board.style.gridTemplateColumns="minmax(220px,420px)";
+  for(const s of cols){
+    const inCol=list.filter(i=>i.status===s.id).sort(cmp(key));
+    const col=el("section",{class:"col","aria-label":s.label},
+      el("div",{class:"colhead"},el("span",null,el("span",{class:"sw",style:`background:var(${s.v})`}),s.label),el("span",{class:"c"},String(inCol.length))));
+    col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("over")});
+    col.addEventListener("dragleave",()=>col.classList.remove("over"));
+    col.addEventListener("drop",e=>{e.preventDefault();col.classList.remove("over");const id=e.dataTransfer.getData("text/plain");moveTo(id,s.id)});
+    if(!inCol.length)col.append(el("div",{class:"colempty"},"Drag a card here"));
+    for(const it of inCol)col.append(cardEl(it));
+    board.append(col);
+  }
+  main.append(board);
+}
+function cardEl(it){
+  const statusSel=el("select",{"aria-label":"Status for "+it.company,onclick:e=>e.stopPropagation(),onchange:e=>moveTo(it.id,e.target.value)},...STATUSES.map(s=>el("option",{value:s.id},s.label)));
+  statusSel.value=it.status;
+  const chips=[deadlineChip(it),it.season&&el("span",{class:"chip"},it.season),it.location&&el("span",{class:"chip"},it.location)].filter(Boolean);
+  const nd=it.nextDate?daysUntil(it.nextDate):null;
+  const card=el("article",{class:"card",style:`--st:${stColor(it.status)}`,draggable:"true",tabindex:"0",
+      onclick:()=>openDlg(it.id),onkeydown:e=>{if(e.key==="Enter"&&e.target===card)openDlg(it.id)},
+      ondragstart:e=>{e.dataTransfer.setData("text/plain",it.id);card.classList.add("dragging")},
+      ondragend:()=>card.classList.remove("dragging")},
+    el("div",{class:"co"},it.company),
+    it.role&&el("div",{class:"ro"},it.role),
+    chips.length&&el("div",{class:"meta"},...chips),
+    it.nextStep&&el("div",{class:"next"},el("b",null,"Next: "),it.nextStep,it.nextDate?el("span",{class:"chip"+(nd<0?" overdue":nd<=1?" due-soon":""),style:"margin-left:6px"},fmtDate(it.nextDate)):null),
+    el("div",{class:"cardfoot"},el("div",{class:"links"},...linkEls(it)),statusSel));
+  return card;
+}
+function renderTable(main,list){
+  const cols=[["company","Company"],["role","Role"],["status","Status"],["season","Season"],["deadline","Deadline"],["applied","Applied"],["nextDate","Next step"],["links","Links"]];
+  const order=STATUSES.map(s=>s.id);
+  const k=tableSort.key,d=tableSort.dir;
+  list=[...list].sort((a,b)=>{
+    if(k==="status")return(order.indexOf(a.status)-order.indexOf(b.status))*d;
+    const av=a[k]||"",bv=b[k]||"";
+    if(!av&&!bv)return 0;if(!av)return 1;if(!bv)return -1;
+    return(av<bv?-1:av>bv?1:0)*d;
+  });
+  const thead=el("tr",null,...cols.map(([key,lab])=>key==="links"?el("th",{style:"cursor:default"},lab):
+    el("th",{tabindex:"0","aria-sort":k===key?(d>0?"ascending":"descending"):null,onclick:()=>sortTable(key),onkeydown:e=>{if(e.key==="Enter")sortTable(key)}},lab)));
+  const rows=list.map(it=>el("tr",{tabindex:"0",onclick:()=>openDlg(it.id),onkeydown:e=>{if(e.key==="Enter")openDlg(it.id)}},
+    el("td",null,el("b",null,it.company)),el("td",null,it.role||""),
+    el("td",null,el("span",{class:"stpill",style:`--st:${stColor(it.status)}`},(SMAP[it.status]||SMAP.toapply).label)),
+    el("td",null,it.season||""),el("td",null,deadlineChip(it)||""),el("td",null,fmtDate(it.applied)),
+    el("td",null,it.nextStep?`${it.nextStep}${it.nextDate?" ("+fmtDate(it.nextDate)+")":""}`:""),
+    el("td",null,el("div",{class:"links"},...linkEls(it)))));
+  main.append(el("div",{class:"tablewrap"},el("table",null,el("thead",null,thead),el("tbody",null,...rows))));
+  if(!list.length)main.append(el("div",{class:"emptyall"},el("p",null,"Nothing matches these filters.")));
+}
+function sortTable(key){if(tableSort.key===key)tableSort.dir*=-1;else tableSort={key,dir:1};render()}
+
+async function moveTo(id,status){
+  const it=items.find(x=>x.id===id);if(!it||it.status===status)return;
+  const next={...it,status};
+  if(status==="applied"&&!next.applied)next.applied=new Date().toISOString().slice(0,10);
+  try{await saveItem(next);toast(`${it.company} moved to ${SMAP[status].label}`)}catch(e){render()}
+}
+
+/* ---------- dialog ---------- */
+const form=$("#form"),dlg=$("#dlg");
+form.status.replaceChildren(...STATUSES.map(s=>el("option",{value:s.id},s.label)));
+function linkRow(l){
+  const row=el("div",{class:"linkrow"},
+    el("input",{placeholder:"Label (e.g. Application)","aria-label":"Link label",value:l.label||""}),
+    el("input",{placeholder:"https://…","aria-label":"Link URL",value:l.url||"",inputmode:"url"}),
+    el("button",{type:"button",class:"x","aria-label":"Remove link",onclick:()=>row.remove()},"×"));
+  return row;
+}
+function openDlg(id){
+  editingId=id||null;
+  const it=id?items.find(x=>x.id===id):null;
+  form.reset();$("#formErr").textContent="";
+  $("#dlgTitle").textContent=it?"Edit internship":"Add internship";
+  $("#delBtn").style.visibility=it?"visible":"hidden";
+  const src=it||{status:statusFilter||"toapply"};
+  for(const f of["company","role","status","season","location","deadline","applied","contact","nextStep","nextDate","notes"])form[f].value=src[f]||"";
+  if(!form.status.value)form.status.value="toapply";
+  const links=(it&&it.links&&it.links.length)?it.links:[{label:"Application",url:""},{label:"Notes",url:""}];
+  $("#linkRows").replaceChildren(...links.map(linkRow));
+  dlg.showModal();form.company.focus();
+}
+$("#addLink").onclick=()=>{const r=linkRow({});$("#linkRows").append(r);r.querySelector("input").focus()};
+$("#cancelBtn").onclick=()=>dlg.close();
+$("#delBtn").onclick=async()=>{
+  const it=items.find(x=>x.id===editingId);if(!it)return;
+  if(!confirm(`Delete ${it.company}? This can't be undone.`))return;
+  try{await deleteItem(it.id);dlg.close();toast(`Deleted ${it.company}`)}catch(e){}
+};
+form.onsubmit=async e=>{
+  e.preventDefault();
+  const company=form.company.value.trim();
+  if(!company){$("#formErr").textContent="Enter a company name.";form.company.focus();return}
+  const links=[];let bad=false;
+  for(const row of $("#linkRows").children){
+    const [lab,url]=row.querySelectorAll("input");
+    if(!url.value.trim())continue;
+    const u=normUrl(url.value);
+    if(!u){bad=true;url.focus();break}
+    links.push({label:lab.value.trim()||"Link",url:u});
+  }
+  if(bad){$("#formErr").textContent="One link isn't a valid web address. Fix or remove it.";return}
+  const prev=editingId?items.find(x=>x.id===editingId):null;
+  const it={id:editingId||uid(),createdAt:prev?.createdAt||Date.now(),company,links};
+  for(const f of["role","status","season","location","deadline","applied","contact","nextStep","nextDate","notes"])it[f]=form[f].value.trim();
+  $("#saveBtn").disabled=true;
+  try{await saveItem(it);dlg.close();toast(prev?"Saved changes":`Added ${company}`)}catch(err){}
+  finally{$("#saveBtn").disabled=false}
+};
+
+/* ---------- export / import ---------- */
+$("#exportBtn").onclick=()=>{
+  const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),items},null,2)],{type:"application/json"});
+  const name=`internships-${new Date().toISOString().slice(0,10)}.json`;
+  (async()=>{
+    try{
+      const dl=window.claude&&typeof window.claude.use==="function"?await window.claude.use("downloads"):null;
+      if(dl){await dl.save({filename:name,data:blob});return}
+    }catch(e){if(e&&e.code)return}
+    const a=el("a",{href:URL.createObjectURL(blob),download:name});document.body.append(a);a.click();a.remove();
+  })();
+};
+$("#importBtn").onclick=()=>$("#importFile").click();
+$("#importFile").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());
+    const arr=Array.isArray(data)?data:data.items;
+    if(!Array.isArray(arr))throw 0;
+    let n=0;
+    for(const raw of arr){
+      if(!raw||!raw.company)continue;
+      const it={...raw,id:raw.id&&/^[A-Za-z0-9_.~:@+-]+$/.test(raw.id)?raw.id:uid(),status:SMAP[raw.status]?raw.status:"toapply"};
+      await saveItem(it);n++;
+    }
+    toast(`Imported ${n} ${n===1?"entry":"entries"}`);
+  }catch(err){toast("That file isn't a tracker backup.")}
+};
+
+/* ---------- controls ---------- */
+$("#addBtn").onclick=()=>openDlg();
+$("#q").oninput=render;$("#season").onchange=render;$("#sortBy").onchange=render;
+function setView(v){view=v;$("#vBoard").setAttribute("aria-pressed",v==="board");$("#vTable").setAttribute("aria-pressed",v==="table");$("#sortBy").style.display=v==="board"?"":"none";render()}
+$("#vBoard").onclick=()=>setView("board");$("#vTable").onclick=()=>setView("table");
+setInterval(()=>{if(!dlg.open)render()},60*60*1000); // refresh "due in" labels hourly
+
+initStore();
+})();
+</script>
+</body>
+</html>
